@@ -1,0 +1,45 @@
+name: Gros Mantar APK oluştur
+
+on:
+workflow_dispatch:
+push:
+paths:
+- 'Gros_Mantar_Android_APK_Projesi.zip'
+- '.github/workflows/build-apk.yml'
+
+jobs:
+build:
+runs-on: ubuntu-latest
+steps:
+- name: Depoyu indir
+uses: actions/checkout@v4
+
+  - name: Java 17 kur
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
+
+  - name: Gradle kur
+    uses: gradle/actions/setup-gradle@v4
+    with:
+      gradle-version: '8.9'
+
+  - name: Android proje dosyalarını çıkar
+    run: |
+      unzip -o Gros_Mantar_Android_APK_Projesi.zip -d .
+      mkdir -p app/src/main/assets/www/js
+
+  - name: Barkod ve Excel kütüphanelerini ekle
+    run: |
+      curl -fL 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js' -o app/src/main/assets/www/js/zxing.min.js
+      curl -fL 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js' -o app/src/main/assets/www/js/xlsx.full.min.js
+
+  - name: APK oluştur
+    run: gradle --no-daemon assembleDebug
+
+  - name: APK dosyasını paylaş
+    uses: actions/upload-artifact@v4
+    with:
+      name: Gros-Mantar-Kasa-Takip-APK
+      path: app/build/outputs/apk/debug/app-debug.apk
